@@ -59,10 +59,10 @@ To have a working end-to-end solution, we need a data source for tiles, a way to
 Data Sources| OSM [data extracts](http://download.geofabrik.de/) (.pbf)<br> Simonepri's [coastline](https://github.com/simonepri/geo-maps/blob/master/info/countries-coastline.md) (.geojson) 
 Premade Tile Sources| [Natural Earth](https://github.com/lukasmartinelli/naturalearthtiles) (Vector and raster tiles) <br> 
 Tile Generation| [Tilemaker](https://github.com/systemed/tilemaker)
-Styles| Maputnik <br> [osm-liberty](https://github.com/maputnik/osm-liberty)
+Styles| [Maputnik](https://maputnik.github.io/editor) <br> [osm-liberty](https://github.com/maputnik/osm-liberty)
 Tile server/ Hosting| [mbtiles-server](https://github.com/DenisCarriere/mbtiles-server) <br> [tileserver-gl-light](https://github.com/maptiler/tileserver-gl)
-Displaying the map| Leaflet <br> Openlayers <br> Maplibre-gl
-Data Visualization| Kepler.gl
+Displaying the map| [Leaflet](https://leafletjs.com/) <br> [Openlayers](https://openlayers.org/) <br> [Maplibre-gl](https://github.com/maplibre/maplibre-gl-js)
+Data Visualization| [Kepler.gl](https://github.com/keplergl/kepler.gl)
 
 ## Data Sources
 TODO
