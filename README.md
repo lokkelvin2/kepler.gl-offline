@@ -25,6 +25,7 @@ Kepler.gl-Offline is a curation of different modules to enable **Free**, **Offli
   - [Displaying the map](#displaying-the-map)
   - [Data visualisation](#data-visualisation)
 - [To be explored](#to-be-explored)
+- [License](#license)
 # Installation
 ### Steps to install from scratch
 On an online computer:
@@ -75,4 +76,7 @@ Integration with traditional data processing workflows (Excel, Python, MATLAB)
 # To be explored
 - Using Digital elevation maps to make topo contour maps [[1](http://viewfinderpanoramas.org/) [2](https://github.com/e-n-f/srtm-gridded-vector) [3](https://github.com/der-stefan/OpenTopoMap)]
 - Reducing Vector tile size by removing redundant information during generation with tilemaker
-- 
+
+# License
+[© OpenStreetMap contributors](https://www.openstreetmap.org/copyright)
+
