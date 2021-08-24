@@ -37,6 +37,7 @@ On an online computer:
 - run `npm install mbtiles-server` and copy the node-modules folder to an offline computer
 - Download `kepler.gl-offline` and cd into `kepler.gl-offline/kepler.gl-demo-app` 
 - run `npm install` and copy the node-modules folder to an offline computer
+- Cd into static_server and run `npm install` and copy the node-modules folder to an offline computer
 
 On the offline computer:
 - Copy over the downloaded osm data and tile sources
@@ -44,9 +45,10 @@ On the offline computer:
 - Copy the mbtiles-server node-modules
 - Copy the kepler.gl-offline node-modules
 - Run tilemaker to generate the tiles (See [Tile Generation](#tile-generation))
-- Run a static node server serving styles.json and sprites
-- Run mbtiles-server serving natural-earth raster tiles and osm vector tiles
+- Run a static node server serving styles,fonts and sprites (`cd static_server` and run `node index.js`)
+- Run mbtiles-server serving natural-earth raster tiles and osm vector tiles (`mbtiles-server --cache /folder/containing/mbtiles --verbose --port 3000`)
 - cd into `kepler.gl-offline/kepler.gl-demo-app` and run `npm start`
+- If all is good, kepler.gl should run. If not, try running Chrome or MS Edge in Windows 8 compatibility mode and opening `kepler.gl-demo-app/index.html` again.
 
 # Components
 ## Overview
