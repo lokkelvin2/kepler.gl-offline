@@ -1,0 +1,3 @@
+[submodule "kepler.gl-demo-app"]
+	path = kepler.gl-demo-app
+	url = git@github.com:lokkelvin2/kepler.gl-demo-app.git
