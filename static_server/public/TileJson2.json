@@ -1,0 +1,14 @@
+{
+    "tilejson": "2.0.0",
+    "name": "Australia",
+    "description": "Australia osm extract, generated with tilemaker",
+    "attribution": "<a href='http://openstreetmap.org'>OSM contributors</a>",
+    "scheme": "xyz",
+    "tiles": [
+        "http://localhost:3000/australia/{z}/{x}/{y}.pbf"
+    ],
+    "minzoom": 0,
+    "maxzoom": 14,
+    "bounds": [ -180, -85.05112877980659, 180, 85.0511287798066 ],
+    "center": [ -76.275329586789, 39.153492567373, 8 ]
+}
