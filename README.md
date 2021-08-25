@@ -45,6 +45,7 @@ On the offline computer:
 - Copy the mbtiles-server node-modules
 - Copy the kepler.gl-offline node-modules
 - Run tilemaker to generate the tiles (See [Tile Generation](#tile-generation))
+- Edit `\kepler.gl-offline\static_server\public\TileJson2.json` to point to your mbtiles url
 - Run a static node server serving styles,fonts and sprites (`cd static_server` and run `node index.js`)
 - Run mbtiles-server serving natural-earth raster tiles and osm vector tiles (`mbtiles-server --cache /folder/containing/mbtiles --verbose --port 3000`)
 - cd into `kepler.gl-offline/kepler.gl-demo-app` and run `npm start`
