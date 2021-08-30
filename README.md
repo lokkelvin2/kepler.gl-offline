@@ -22,6 +22,7 @@ Kepler.gl-Offline is a curation of different modules to enable **Free**, **Offli
   - [Data Sources](#data-sources)
   - [Premade Tile Sources](#premade-tile-sources)
   - [Tile Generation](#tile-generation)
+    - [Contour line generation](#contour-line-generation)
   - [Styling](#styling)
   - [Tile server/ hosting](#tile-server-hosting)
   - [Displaying the map](#displaying-the-map)
@@ -57,9 +58,9 @@ To have a working end-to-end solution, we need a data source for tiles, a way to
 
 |Description|Name|
 ---|---
-Data Sources| OSM [data extracts](http://download.geofabrik.de/) (.pbf)<br> Simonepri's [coastline](https://github.com/simonepri/geo-maps/blob/master/info/countries-coastline.md) (.geojson) 
+Data Sources| OSM [data extracts](http://download.geofabrik.de/) (.pbf)<br> Simonepri's [coastline](https://github.com/simonepri/geo-maps/blob/master/info/countries-coastline.md) (.geojson) <br> OpenDEM [SRTM based Contour Lines](https://www.opendem.info/download_contours.html) (.shp)
 Premade Tile Sources| [Natural Earth](https://github.com/lukasmartinelli/naturalearthtiles) (Vector and raster tiles) <br> 
-Tile Generation| [Tilemaker](https://github.com/systemed/tilemaker)
+Tile Generation| [Tilemaker](https://github.com/systemed/tilemaker) (pbf to mbtiles) <br> [Tippecanoe](https://github.com/mapbox/tippecanoe) (geojson to mbtiles)
 Styles| [Maputnik](https://maputnik.github.io/editor) <br> [osm-liberty](https://github.com/maputnik/osm-liberty)
 Tile server/ Hosting| [mbtiles-server](https://github.com/DenisCarriere/mbtiles-server) <br> [tileserver-gl-light](https://github.com/maptiler/tileserver-gl)
 Displaying the map| [Leaflet](https://leafletjs.com/) <br> [Openlayers](https://openlayers.org/) <br> [Maplibre-gl](https://github.com/maplibre/maplibre-gl-js)
@@ -71,6 +72,64 @@ TODO
 TODO
 ## Tile Generation
 TODO
+### Contour line generation
+- Download [SRTM shapefiles from OpenDEM](https://www.opendem.info/download_contours.html). These are shape files generated from .hgt SRTM data with 3-arc-seconds (90m) global resolution. An alternative data source is [MERIT DEM](http://hydro.iis.u-tokyo.ac.jp/~yamadai/MERIT_DEM/)
+- Convert .shp files to geojson using [ogr2ogr in gdal](https://gis.stackexchange.com/a/280653) or [QGIS](https://gist.github.com/YKCzoli/b7f5ff0e0f641faba0f47fa5d16c4d8d) or [any one of these github repos](https://github.com/search?q=convert+shp+to+geojson)
+- Convert geojson to mbtiles using tippecanoe. Using docker desktop:
+  ```bash
+  docker pull osgeo/gdal:ubuntu-small-latest
+  docker run -it --rm -v D:/data:/data tippecanoe:latest tippecanoe /data/N01E01.geojson  --output=/data/contours.mbtiles
+  ````
+  where `N01E01.geojson` is saved in D:/data.
+- Create a TileJson that points to the contours.mbtiles endpoint
+```json
+{
+	"attribution": "OpenDEM, SRTM by USGS",
+	"description": "SRTM based Contour Lines",
+	"format": "pbf",
+	"maxzoom": 14,
+	"minzoom": 0,
+	"name": "contours",
+	"scheme": "xyz",
+	"tiles": ["http://localhost:3000/contours/{z}/{x}/{y}.pbf"],
+	"version": "2.0.0"
+}
+```
+- Edit styles to include the new source layer
+```json
+  "sources": {
+    "openmaptiles": {
+      "type": "vector",
+      "url": "http://localhost:4000/TileJson2.json"
+    },
+    "natural_earth_shaded_relief": {
+      "maxzoom": 6,
+      "tileSize": 256,
+      "tiles": [
+        "http://localhost:3000/natural_earth_2_shaded_relief_raster/{z}/{x}/{y}.png"
+      ],
+      "type": "raster"
+    },
+    "contours": {
+      "type": "vector",
+      "url": "http://localhost:4000/TileContour.json"
+    }
+  },
+```
+- Next, style the new contour layer, taking note that `"source-layer"` should be the `"id"` String value in the contours.mbtiles metatable. We can use a SQLite DB browser to query this value.
+```json
+{
+  "id": "contours_index",
+  "type": "line",
+  "source": "contours",
+  "source-layer": "N01E01",
+  "filter": ["all"],
+  .
+  .
+  .
+}
+```
+
 ## Styling
 We can use [maputnik](https://maputnik.github.io/editor/) to preview the following free styles:
 - [Maptiler Basic](https://github.com/openmaptiles/maptiler-basic-gl-style)
