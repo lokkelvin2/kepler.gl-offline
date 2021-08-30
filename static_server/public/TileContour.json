@@ -1,0 +1,11 @@
+{
+	"attribution": "OpenDEM, SRTM by USGS",
+	"description": "SRTM based Contour Lines",
+	"format": "pbf",
+	"maxzoom": 14,
+	"minzoom": 0,
+	"name": "contours",
+	"scheme": "xyz",
+	"tiles": ["http://localhost:3000/contours/{z}/{x}/{y}.pbf"],
+	"version": "2.0.0"
+}
