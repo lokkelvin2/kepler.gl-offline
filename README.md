@@ -24,6 +24,7 @@ Kepler.gl-Offline is a curation of different modules to enable **Free**, **Offli
   - [Tile Generation](#tile-generation)
     - [Contour line generation](#contour-line-generation)
   - [Styling](#styling)
+    - [Side note on fonts/labels and Tilemaker](#side-note-on-fontslabels-and-tilemaker)
   - [Tile server/ hosting](#tile-server-hosting)
   - [Displaying the map](#displaying-the-map)
   - [Data visualisation](#data-visualisation)
@@ -61,7 +62,7 @@ To have a working end-to-end solution, we need a data source for tiles, a way to
 Data Sources| OSM [data extracts](http://download.geofabrik.de/) (.pbf)<br> Simonepri's [coastline](https://github.com/simonepri/geo-maps/blob/master/info/countries-coastline.md) (.geojson) <br> OpenDEM [SRTM based Contour Lines](https://www.opendem.info/download_contours.html) (.shp)
 Premade Tile Sources| [Natural Earth](https://github.com/lukasmartinelli/naturalearthtiles) (Vector and raster tiles) <br> 
 Tile Generation| [Tilemaker](https://github.com/systemed/tilemaker) (pbf to mbtiles) <br> [Tippecanoe](https://github.com/mapbox/tippecanoe) (geojson to mbtiles)
-Styles| [Maputnik](https://maputnik.github.io/editor) <br> [osm-liberty](https://github.com/maputnik/osm-liberty)
+Styles| [Maputnik](https://maputnik.github.io/editor) <br> [osm-liberty](https://github.com/maputnik/osm-liberty) <br> [Qwant style](https://github.com/Qwant/qwant-basic-gl-style)
 Tile server/ Hosting| [mbtiles-server](https://github.com/DenisCarriere/mbtiles-server) <br> [tileserver-gl-light](https://github.com/maptiler/tileserver-gl)
 Displaying the map| [Leaflet](https://leafletjs.com/) <br> [Openlayers](https://openlayers.org/) <br> [Maplibre-gl](https://github.com/maplibre/maplibre-gl-js)
 Data Visualization| [Kepler.gl](https://github.com/keplergl/kepler.gl)
@@ -138,12 +139,16 @@ We can use [maputnik](https://maputnik.github.io/editor/) to preview the followi
 - [Dark matter](https://github.com/openmaptiles/dark-matter-gl-style)
 - [Toner](https://github.com/openmaptiles/maptiler-toner-gl-style)
 - [Positron](https://github.com/openmaptiles/positron-gl-style)
-  
+- [Qwant basic style](https://github.com/Qwant/qwant-basic-gl-style)
+
 To make the styles work with our mbstiles-server, we need to edit the layer source url to point to our self-hosted server. My static server is at `localhost:4000` and mbstiles-server is at `localhost:3000` so these are the two endpoints used in the style files.
 
 The format that mapboxgl (which is what kepler.gl uses) expects is a TileJSON schema[[1](https://docs.mapbox.com/mapbox-gl-js/style-spec/sources/),[2](https://github.com/mapbox/tilejson-spec/tree/master/2.0.0)] in the source of our style.json. This TileJSON format is also what tileserver-gl serves at its default `http://localhost:8080/data/v3.json` endpoint.
 
 Fonts can be found at the releases page of [openmaptiles/fonts](https://github.com/openmaptiles/fonts). These can then be hosted using a static server.
+
+### Side note on fonts/labels and Tilemaker
+There is a known [incompatibility](https://github.com/systemed/tilemaker/issues/285#issuecomment-902149324) with the name tags from tilemaker and OpenMapTiles schema styles. Easiest fix is to replace all occurance of `"text-field:{key}"` in your style.json to `"text-filed:{name:latin}"`.
 
 ## Tile server/ hosting
 Both mbtiles-server and tileserver-gl-light works fine. Another static server can be used to host styles.json and sprites.
