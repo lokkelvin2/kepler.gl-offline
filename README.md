@@ -148,7 +148,7 @@ The format that mapboxgl (which is what kepler.gl uses) expects is a TileJSON sc
 Fonts can be found at the releases page of [openmaptiles/fonts](https://github.com/openmaptiles/fonts). These can then be hosted using a static server.
 
 ### Side note on fonts/labels and Tilemaker
-There is a known [incompatibility](https://github.com/systemed/tilemaker/issues/285#issuecomment-902149324) with the name tags from tilemaker and OpenMapTiles schema styles. Easiest fix is to replace all occurance of `"text-field:{key}"` in your style.json to `"text-filed:{name:latin}"`.
+There is a known [incompatibility](https://github.com/systemed/tilemaker/issues/285#issuecomment-902149324) with the name tags from tilemaker and OpenMapTiles schema styles. Easiest fix is to replace all occurance of `"text-field:{key}"` in your style.json to `"text-field:{name:latin}"`.
 
 ## Tile server/ hosting
 Both mbtiles-server and tileserver-gl-light works fine. Another static server can be used to host styles.json and sprites.
