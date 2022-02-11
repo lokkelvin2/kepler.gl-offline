@@ -23,6 +23,7 @@ Kepler.gl-Offline is a curation of different modules to enable **Free**, **Offli
   - [Premade Tile Sources](#premade-tile-sources)
   - [Tile Generation](#tile-generation)
     - [Contour line generation](#contour-line-generation)
+    - [Hillshade generation](#hillshade-generation)
   - [Styling](#styling)
     - [Side note on fonts/labels and Tilemaker](#side-note-on-fontslabels-and-tilemaker)
   - [Tile server/ hosting](#tile-server-hosting)
@@ -59,7 +60,7 @@ To have a working end-to-end solution, we need a data source for tiles, a way to
 
 |Description|Name|
 ---|---
-Data Sources| OSM [data extracts](http://download.geofabrik.de/) (.pbf)<br> Simonepri's [coastline](https://github.com/simonepri/geo-maps/blob/master/info/countries-coastline.md) (.geojson) <br> OpenDEM [SRTM based Contour Lines](https://www.opendem.info/download_contours.html) (.shp)
+Data Sources| OSM [data extracts](http://download.geofabrik.de/) (.pbf)<br> Simonepri's [coastline](https://github.com/simonepri/geo-maps/blob/master/info/countries-coastline.md) (.geojson) <br> OpenDEM [SRTM based Contour Lines](https://www.opendem.info/download_contours.html) (.shp) <br> Viewfinder Panorama's [SRTM/Hybrid DEM](http://viewfinderpanoramas.org/) (.hgt)
 Premade Tile Sources| [Natural Earth](https://github.com/lukasmartinelli/naturalearthtiles) (Vector and raster tiles) <br> 
 Tile Generation| [Tilemaker](https://github.com/systemed/tilemaker) (pbf to mbtiles) <br> [Tippecanoe](https://github.com/mapbox/tippecanoe) (geojson to mbtiles)
 Styles| [Maputnik](https://maputnik.github.io/editor) <br> [osm-liberty](https://github.com/maputnik/osm-liberty) <br> [Qwant style](https://github.com/Qwant/qwant-basic-gl-style)
@@ -129,6 +130,50 @@ TODO
   .
   .
 }
+```
+
+### Hillshade generation
+- Download .hgt SRTM DEM from [Viewfinder Panoramas](http://viewfinderpanoramas.org/dem3.html).
+- Import all .hgt into QGIS and [generate a virtual raster](https://gis.stackexchange.com/questions/296155/setting-the-same-min-max-for-multiple-raster-layers-qgis) through `Raster - Miscellaneous - Build Virtual Raster`.
+- Follow this [guide](https://ieqgis.com/2015/04/04/create-great-looking-topographic-maps-in-qgis-2/) to generate Hillshade with a colormap
+  - Note: Under `Raster - Analysis - Hillshade`, use 61120 instead of 111120 for `Scale ratio vertical units to horizontal` to produce finer details.
+  - Create another layer using the same virtual raster and set the blending mode of Singleband pseudocolor to `Multiply`
+- Export the hillshade by going to `Processing toolbox - Raster Tools - Generate XYZ tiles (MBTiles)`.
+- Set the extent based on the hill shade (take note of this extent as we will need it later)
+- Max zoom of 12 is sufficient for the precision of this DEM dataset
+- Follow [above](#contour-line-generation) for instructions on creating a Tilejson for our new raster layer
+  - Following [TileJSON 2.0.0 spec](https://github.com/mapbox/tilejson-spec/tree/master/2.0.0), we include the `'bounds'` parameter based on the extent from QGIS
+  - QGIS displays the extent in [Left, Right, Bottom, Top] but TileJSON 2.0.0 takes in [Left, Bottom, Right, Top]. Be sure to change the order accordingly.
+- The raster tile source should look like this: 
+
+```json
+"sources": {
+    "Hillshade": {
+      "maxzoom": 12,
+      "minzoom": 6,
+      "tileSize": 256,
+      "tiles": [
+        "http://localhost:3000/HillshadeMBTileFromQGIS/{z}/{x}/{y}.png"
+      ],
+      "type": "raster",
+      "bounds": [0,0,2,2], 
+      "attribution": "Viewfinder Panoramas, VFP-DEM"
+    },
+    .
+    .
+    .
+}
+```
+- and the style will be:
+```json
+    {
+      "id": "Hillshadestyle",
+      "type": "raster",
+      "source": "Hillshade",
+      "maxzoom": 16,
+      "minzoom": 0,
+      "paint": {"raster-opacity": {"base": 1.5, "stops": [[0, 1],[6, 1], [12, 0.1]]}}
+    },
 ```
 
 ## Styling
