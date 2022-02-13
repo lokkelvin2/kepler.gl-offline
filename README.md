@@ -24,6 +24,8 @@ Kepler.gl-Offline is a curation of different modules to enable **Free**, **Offli
   - [Tile Generation](#tile-generation)
     - [Contour line generation](#contour-line-generation)
     - [Hillshade generation](#hillshade-generation)
+    - [Raster DEM generation](#raster-dem-generation)
+      - [Installing GDAL](#installing-gdal)
   - [Styling](#styling)
     - [Side note on fonts/labels and Tilemaker](#side-note-on-fontslabels-and-tilemaker)
   - [Tile server/ hosting](#tile-server-hosting)
@@ -174,6 +176,23 @@ TODO
       "minzoom": 0,
       "paint": {"raster-opacity": {"base": 1.5, "stops": [[0, 1],[6, 1], [12, 0.1]]}}
     },
+```
+
+### Raster DEM generation
+For raster-dem mbtile generation, we follow this [guide by Makina Maps](https://makina-corpus.com/sig-webmapping/representation-des-modeles-numeriques-de-terrain-sur-le-web-ombrage-et-3d) (google translate it). Again, we use 90m interval SRTM DEM from [Viewfinder Panoramas](http://viewfinderpanoramas.org/dem3.html).
+
+First, we will need to install GDAL and the python bindings for GDAL.
+#### Installing GDAL
+- Download the prebuilt GDAL [binaries for windows](https://www.gisinternals.com/query.html?content=filelist&file=release-1928-x64-gdal-3-4-1-mapserver-7-6-4.zip)
+- Create a python venv and pip install `gdal`
+- git clone https://github.com/makina-maps/rio-rgbify.git. `cd rio-rgbify` and run `pip install .`
+
+The full build commands are as follows:
+```bash
+gdalbuildvrt -a_srs EPSG:4326 -hidenodata "output.virt" "srtm\*.hgt"
+gdal_translate -co compress=lzw -of GTiff "output.virt" "output.tiff"
+python gdal_calc.py --co="COMPRESS=LZW" --type=Float32 -A "output.tiff" --outfile="output_.tiff" --calc="A*(A>0)" --NoDataValue=0
+rio rgbify -b -10000 -i 0.1 -j 8 --format webp --max-z 11 --min-z 5 "output_.tiff" "rasterdem_.mbtiles"
 ```
 
 ## Styling
