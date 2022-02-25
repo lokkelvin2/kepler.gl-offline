@@ -26,6 +26,8 @@ Kepler.gl-Offline is a curation of different modules to enable **Free**, **Offli
     - [Hillshade generation](#hillshade-generation)
     - [Raster DEM generation](#raster-dem-generation)
       - [Installing GDAL](#installing-gdal)
+      - [Optional](#optional)
+    - [Bathymetry vector tile generation (Mapbox's guide).](#bathymetry-vector-tile-generation-mapboxs-guide)
   - [Styling](#styling)
     - [Side note on fonts/labels and Tilemaker](#side-note-on-fontslabels-and-tilemaker)
   - [Tile server/ hosting](#tile-server-hosting)
@@ -62,7 +64,7 @@ To have a working end-to-end solution, we need a data source for tiles, a way to
 
 |Description|Name|
 ---|---
-Data Sources| OSM [data extracts](http://download.geofabrik.de/) (.pbf)<br> Simonepri's [coastline](https://github.com/simonepri/geo-maps/blob/master/info/countries-coastline.md) (.geojson) <br> OpenDEM [SRTM based Contour Lines](https://www.opendem.info/download_contours.html) (.shp) <br> Viewfinder Panorama's [SRTM/Hybrid DEM](http://viewfinderpanoramas.org/) (.hgt)
+Data Sources| OSM [data extracts](http://download.geofabrik.de/) (.pbf)<br> Simonepri's [coastline](https://github.com/simonepri/geo-maps/blob/master/info/countries-coastline.md) (.geojson) <br> OpenDEM [SRTM based Contour Lines](https://www.opendem.info/download_contours.html) (.shp) <br> Viewfinder Panorama's [SRTM/Hybrid DEM](http://viewfinderpanoramas.org/) (.hgt) <br> Natural Earth [shapefiles](https://github.com/nvkelso/natural-earth-vector) (.shp)
 Premade Tile Sources| [Natural Earth](https://github.com/lukasmartinelli/naturalearthtiles) (Vector and raster tiles) <br> 
 Tile Generation| [Tilemaker](https://github.com/systemed/tilemaker) (pbf to mbtiles) <br> [Tippecanoe](https://github.com/mapbox/tippecanoe) (geojson to mbtiles)
 Styles| [Maputnik](https://maputnik.github.io/editor) <br> [osm-liberty](https://github.com/maputnik/osm-liberty) <br> [Qwant style](https://github.com/Qwant/qwant-basic-gl-style)
@@ -194,6 +196,36 @@ gdal_translate -co compress=lzw -of GTiff "output.virt" "output.tiff"
 python gdal_calc.py --co="COMPRESS=LZW" --type=Float32 -A "output.tiff" --outfile="output_.tiff" --calc="A*(A>0)" --NoDataValue=0
 rio rgbify -b -10000 -i 0.1 -j 8 --format webp --max-z 11 --min-z 5 "output_.tiff" "rasterdem_.mbtiles"
 ```
+#### Optional
+Use DB Browser for SQLite to populate the metadata table of the rasterdem mbtile according to the [official specs](https://github.com/mapbox/mbtiles-spec/blob/master/1.3/spec.md).
+Things to include are
+- center
+- bounds
+- minzoom
+- maxzoom
+- attribution (optional)
+
+### Bathymetry vector tile generation ([Mapbox's guide](https://www.mapbox.com/blog/custom-bathymetry-tilesets-with-mts)). 
+For bathymetry, we use ESRI Shapefiles from Natural Earth. This data comes from [SRTM30_PLUS](https://topex.ucsd.edu/WWW_html/srtm30_plus.html) which is a processed bathymetry dataset with 30-arc second resolution.
+- Download natural earth data from its github release page [here](https://github.com/nvkelso/natural-earth-vector/archive/refs/tags/v5.0.0.zip)
+- Using GDAL, we combine the shapefiles and convert the merged file into a GeoJSON
+```bash
+set PROJ_LIB=C:\Program Files\GDAL\projlib
+ogr2ogr merge.shp ne_10m_bathymetry_L_0.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_K_200.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_J_1000.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_I_2000.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_H_3000.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_G_4000.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_F_5000.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_E_6000.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_D_7000.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_C_8000.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_B_9000.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_A_10000.shp
+ogr2ogr -f GeoJSON merge.geojson merge.shp
+```
+- Convert the GeoJSON into mbtiles using Tippecanoe ([through cygwin](https://github.com/GISupportICRC/ArcGIS2Mapbox#installing-tippecanoe-on-windows)) or any online tool
 
 ## Styling
 We can use [maputnik](https://maputnik.github.io/editor/) to preview the following free styles:
