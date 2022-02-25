@@ -206,26 +206,84 @@ Things to include are
 - attribution (optional)
 
 ### Bathymetry vector tile generation ([Mapbox's guide](https://www.mapbox.com/blog/custom-bathymetry-tilesets-with-mts)). 
-For bathymetry, we use ESRI Shapefiles from Natural Earth. This data comes from [SRTM30_PLUS](https://topex.ucsd.edu/WWW_html/srtm30_plus.html) which is a processed bathymetry dataset with 30-arc second resolution.
+For bathymetry, we use ESRI Shapefiles from Natural Earth. This data comes from [SRTM30_PLUS](https://topex.ucsd.edu/WWW_html/srtm30_plus.html) which is a processed bathymetry dataset with 30 arc seconds resolution.
 - Download natural earth data from its github release page [here](https://github.com/nvkelso/natural-earth-vector/archive/refs/tags/v5.0.0.zip)
+- Use QGIS to dissolve and postprocess each shapefile
+  - First, we use `Dissolve` to merge adjacent polygons. Set the dissolve field to `depth`.
+  - There will be some broken geometries/boundaries post-dissolve. To remove these artifacts, we use `Delete holes` ,with the area set to `0.001` or greater as needed.
 - Using GDAL, we combine the shapefiles and convert the merged file into a GeoJSON
+  - We only use depth 200-10000. Depth 0 vectors are equivalent to the coastline which should already be part of the basemap.
 ```bash
 set PROJ_LIB=C:\Program Files\GDAL\projlib
-ogr2ogr merge.shp ne_10m_bathymetry_L_0.shp
-ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_K_200.shp
-ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_J_1000.shp
-ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_I_2000.shp
-ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_H_3000.shp
-ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_G_4000.shp
-ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_F_5000.shp
-ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_E_6000.shp
-ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_D_7000.shp
-ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_C_8000.shp
-ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_B_9000.shp
-ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_A_10000.shp
+ogr2ogr merge.shp ne_10m_bathymetry_K_200_dissolve_clean.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_J_1000_dissolve_clean.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_I_2000_dissolve_clean.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_H_3000_dissolve_clean.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_G_4000_dissolve_clean.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_F_5000_dissolve_clean.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_E_6000_dissolve_clean.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_D_7000_dissolve_clean.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_C_8000_dissolve_clean.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_B_9000_dissolve_clean.shp
+ogr2ogr -update -append -nln merge merge.shp ne_10m_bathymetry_A_10000_dissolve_clean.shp
 ogr2ogr -f GeoJSON merge.geojson merge.shp
 ```
 - Convert the GeoJSON into mbtiles using Tippecanoe ([through cygwin](https://github.com/GISupportICRC/ArcGIS2Mapbox#installing-tippecanoe-on-windows)) or any online tool
+```bash
+tippecanoe -o bathymetry.mbtiles merge.geojson -z 9 --preserve-input-order --include=depth --simplification=4
+```
+- Explanation:
+  - `-z 9` sets max zoom level to 9 which is sufficient for the resolution of this dataset
+  - `--preserve-input-order` is necessary since the shallower polygons will occlude the deeper polygons
+  - `--include=depth` we only require the `depth` attribute for styling. This command removes the other unecessary attributes in the final mbtiles.
+  - `--simplification=4` to simplify the ploygon.
+- Styling the bathymetry vector tile can be done using [this example](https://docs.mapbox.com/mapbox-gl-js/example/style-ocean-depth-data/) by mapbox
+- The bathymetry TileJSON should look like this: 
+```json
+//saved as TileJsonBathymetry.json
+{
+    "tilejson": "2.0.0",
+    "name": "bathymetry",
+    "description": "Bathymetry, generated from Natural Earth",
+    "scheme": "xyz",
+    "format": "pbf",
+    "tiles": [
+        "http://localhost:3000/bathymetry/{z}/{x}/{y}.pbf"
+    ],
+    "minzoom": 0,
+    "maxzoom": 9
+}
+```
+- and the style sheet should include the following source,
+```json
+"sources": {
+    "ne_10m_bathymetry": {
+      "type": "vector",
+      "url": "http://localhost:4000/TileJsonBathymetry.json"
+    }, ...
+}
+```
+- and its corresponding layer
+```json
+    {
+      "id": "bathymetry",
+      "type": "fill",
+      "source": "ne_10m_bathymetry",
+      "source-layer": "merge", // This id is obtained from inspecting the METADATA table of the mbtile
+      "paint": {
+            "fill-color": [
+              "interpolate",
+              ["cubic-bezier", 0, 0.5, 1, 0.5],
+              ["get", "depth"],
+              200,
+              "#78bced",
+              9000,
+              "#15659f"
+            ]
+        }
+    },
+```
+
 
 ## Styling
 We can use [maputnik](https://maputnik.github.io/editor/) to preview the following free styles:
