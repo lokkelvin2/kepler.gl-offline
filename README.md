@@ -22,6 +22,10 @@ Kepler.gl-Offline is a curation of different modules to enable **Free**, **Offli
   - [Data Sources](#data-sources)
   - [Premade Tile Sources](#premade-tile-sources)
   - [Tile Generation](#tile-generation)
+    - [Tilemaker](#tilemaker)
+    - [Planetiler](#planetiler)
+      - [Editing OMT](#editing-omt)
+      - [Building and generating Planetiler](#building-and-generating-planetiler)
     - [Contour line generation](#contour-line-generation)
     - [Hillshade generation](#hillshade-generation)
     - [Raster DEM generation](#raster-dem-generation)
@@ -77,7 +81,31 @@ TODO
 ## Premade Tile Sources
 TODO
 ## Tile Generation
+### Tilemaker
 TODO
+### Planetiler
+Planetiler generates layers based on OMT yaml files. To create customized layers, we will need to fork OMT and regenerate planetiler. OMT does not output names of buildings and landuse polygons by default, hence we will need to add it in ourselves. We can achieve this by creating a POI layer for every building name and landuse of interest.
+
+Planetiler generates files blazingly fast. On a Ryzen 3600x w/ 32GB Ram, generation of asia-latest.osm.pbf (11GB) takes 55 minutes on average and output mbtiles is 32GB.
+#### Editing OMT
+1. Fork [openmaptiles](https://github.com/openmaptiles/openmaptiles)
+2. Create a new branch for every new edit to prevent url cache problems with planetiler
+3. Add POI layers for buildings and landuse (see [lokkelvin2/openmaptiles](https://github.com/lokkelvin2/openmaptiles/commits/poi4)) and checkout as a new branch
+#### Building and generating Planetiler
+1. `git clone https://github.com/lokkelvin2/planetiler`
+2. Install Java 17 from [Adoptium](https://adoptium.net/installation.html#windows-msi)
+3. `set JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.2.8-hotspot`
+4. `mvnw.cmd -DskipTests=true --projects planetiler-dist -am package`
+5. Edit [Generate.java line 133](https://github.com/lokkelvin2/planetiler/blob/0214605799655c28f0a33a6714ebb0b19eaf38da/planetiler-basemap/src/main/java/com/onthegomap/planetiler/basemap/Generate.java#L133) to point to your fork of OMT
+   ```diff
+   -  String base = "https://raw.githubusercontent.com/openmaptiles/openmaptiles/" + tag + "/";
+   +  String base = "https://raw.githubusercontent.com/lokkelvin2/openmaptiles/" + tag + "/";
+   ```
+6. `java -cp <full-path-to-jar> com.onthegomap.planetiler.basemap.Generate -tag="poi4"`
+7. `mvnw.cmd spotless:apply`
+8. On an online computer, predownload all required assets. See `java -jar planetiler.jar --help` for commands. You will need lake_centerline, natural_earth_vector, water-polygons-split-3857 and wikidata_names.
+9. `java -jar "planetiler-dist-0.3-SNAPSHOT-with-deps.jar" --osm_path="planet-latest.osm.pbf" --mbtiles=data\output.mbtiles`
+
 ### Contour line generation
 - Download [SRTM shapefiles from OpenDEM](https://www.opendem.info/download_contours.html). These are shape files generated from .hgt SRTM data with 3-arc-seconds (90m) global resolution. An alternative data source is [MERIT DEM](http://hydro.iis.u-tokyo.ac.jp/~yamadai/MERIT_DEM/)
 - Convert .shp files to geojson using [ogr2ogr in gdal](https://gis.stackexchange.com/a/280653) or [QGIS](https://gist.github.com/YKCzoli/b7f5ff0e0f641faba0f47fa5d16c4d8d) or [any one of these github repos](https://github.com/search?q=convert+shp+to+geojson)
